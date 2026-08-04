@@ -203,6 +203,11 @@ def barra_lateral() -> None:
 
 
 def encabezado(titulo: str, sub: str) -> None:
+    # Boton para regresar al menu (util sobre todo en celular, donde la barra se esconde)
+    if st.session_state.get("pagina", "inicio") != "inicio":
+        if st.button("← Volver al inicio", key="volver_" + titulo):
+            st.session_state.pagina = "inicio"
+            st.rerun()
     c1, c2 = st.columns([4, 1])
     with c1:
         st.markdown(f"## {titulo}")
