@@ -9,6 +9,7 @@ Para correrlo:  doble clic en  "INICIAR DEMO.cmd"
 """
 import os
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -22,6 +23,39 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+# --------------------------------------------------------------------------- #
+# Desactivar el zoom (pellizco en celular, doble toque y Ctrl+rueda en PC)
+# --------------------------------------------------------------------------- #
+def sin_zoom() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+          const doc = window.parent.document;
+          let meta = doc.querySelector('meta[name="viewport"]');
+          if (!meta) { meta = doc.createElement('meta'); meta.name = 'viewport'; doc.head.appendChild(meta); }
+          meta.setAttribute('content',
+            'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no');
+          const s = doc.createElement('style');
+          s.textContent = 'html,body{touch-action:manipulation;}';
+          doc.head.appendChild(s);
+          const stop = (e) => { if (e.ctrlKey || e.metaKey) e.preventDefault(); };
+          doc.addEventListener('wheel', stop, { passive: false });
+          ['gesturestart','gesturechange','gestureend'].forEach((ev) =>
+            doc.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));
+          doc.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) e.preventDefault();
+          });
+        })();
+        </script>
+        """,
+        height=0,
+    )
+
+
+sin_zoom()
+
 # --------------------------------------------------------------------------- #
 # Estilo
 # --------------------------------------------------------------------------- #
@@ -30,6 +64,8 @@ st.markdown(
     <style>
       [data-testid="stToolbar"], [data-testid="stDecoration"], #MainMenu { display:none !important; }
       header[data-testid="stHeader"] { background:transparent; }
+      /* La flecha para abrir/cerrar el menu lateral SIEMPRE visible (en celular no hay hover) */
+      [data-testid="stSidebarCollapseButton"] { visibility:visible !important; opacity:1 !important; }
       footer { visibility:hidden; }
       .stApp { background:
         radial-gradient(120% 60% at 50% -5%, #16223a 0%, rgba(14,19,32,0) 55%),
