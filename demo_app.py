@@ -25,14 +25,19 @@ st.set_page_config(
 
 
 # --------------------------------------------------------------------------- #
-# Desactivar el zoom (pellizco en celular, doble toque y Ctrl+rueda en PC)
+# Mejoras para celular: desactivar zoom + boton flotante "Menu" (reabrir barra)
 # --------------------------------------------------------------------------- #
-def sin_zoom() -> None:
+def mejoras_movil(color: str = "#2F6BE0") -> None:
     components.html(
         """
         <script>
         (function () {
           const doc = window.parent.document;
+          if (doc.getElementById('__miMenuInit')) { return; }
+          const flag = doc.createElement('span');
+          flag.id = '__miMenuInit'; flag.style.display = 'none'; doc.body.appendChild(flag);
+
+          // 1) Desactivar zoom (pellizco, doble toque, Ctrl+rueda / teclado)
           let meta = doc.querySelector('meta[name="viewport"]');
           if (!meta) { meta = doc.createElement('meta'); meta.name = 'viewport'; doc.head.appendChild(meta); }
           meta.setAttribute('content',
@@ -47,14 +52,34 @@ def sin_zoom() -> None:
           doc.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) e.preventDefault();
           });
+
+          // 2) Boton flotante "Menu" que reabre la barra lateral cuando se oculta
+          function fire(el){ ['pointerdown','mousedown','pointerup','mouseup','click'].forEach(t =>
+            el.dispatchEvent(new MouseEvent(t, {bubbles:true, cancelable:true, view:window}))); }
+          function toggle(){
+            const btn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button')
+                     || doc.querySelector('button[data-testid="stExpandSidebarButton"]');
+            if (btn) fire(btn);
+          }
+          const b = doc.createElement('button');
+          b.type = 'button'; b.textContent = '\\u2630 Menu';
+          b.style.cssText = 'position:fixed;top:10px;left:10px;z-index:2147483647;background:__COLOR__;'
+            + 'color:#fff;border:none;border-radius:10px;padding:8px 14px;'
+            + 'font:700 15px system-ui,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer;display:none';
+          b.addEventListener('click', toggle);
+          doc.body.appendChild(b);
+          setInterval(function(){
+            const colapsada = !!doc.querySelector('button[data-testid="stExpandSidebarButton"]');
+            b.style.display = colapsada ? 'block' : 'none';
+          }, 300);
         })();
         </script>
-        """,
+        """.replace("__COLOR__", color),
         height=0,
     )
 
 
-sin_zoom()
+mejoras_movil("#2F6BE0")
 
 # --------------------------------------------------------------------------- #
 # Estilo
@@ -62,9 +87,10 @@ sin_zoom()
 st.markdown(
     """
     <style>
-      [data-testid="stToolbar"], [data-testid="stDecoration"], #MainMenu { display:none !important; }
+      [data-testid="stToolbarActions"], [data-testid="stAppDeployButton"],
+      [data-testid="stDecoration"], #MainMenu { display:none !important; }
       header[data-testid="stHeader"] { background:transparent; }
-      /* La flecha para abrir/cerrar el menu lateral SIEMPRE visible (en celular no hay hover) */
+      /* La flecha para ocultar el menu lateral SIEMPRE visible (en celular no hay hover) */
       [data-testid="stSidebarCollapseButton"] { visibility:visible !important; opacity:1 !important; }
       footer { visibility:hidden; }
       .stApp { background:
@@ -223,7 +249,7 @@ MENU = [
 def barra_lateral() -> None:
     with st.sidebar:
         if os.path.exists(LOGO):
-            st.image(LOGO, width=110)
+            st.image(LOGO, width=72)
         st.markdown(f"**{NEGOCIO_DEMO}**  \n<span class='muted'>Portal de automatización</span>",
                     unsafe_allow_html=True)
         st.markdown("### Programas")
