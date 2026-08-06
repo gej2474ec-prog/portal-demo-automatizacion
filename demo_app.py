@@ -7,6 +7,7 @@ No usa ningún dato real. Sirve para enseñárselo a clientes potenciales.
 
 Para correrlo:  doble clic en  "INICIAR DEMO.cmd"
 """
+import base64
 import os
 import streamlit as st
 import streamlit.components.v1 as components
@@ -209,9 +210,13 @@ def pantalla_login() -> None:
         st.write("")
         st.write("")
         if os.path.exists(LOGO):
-            l, m, r = st.columns([1, 1, 1])
-            with m:
-                st.image(LOGO, use_container_width=True)
+            _b64 = base64.b64encode(open(LOGO, "rb").read()).decode()
+            st.markdown(
+                f"<div style='text-align:center;margin:4px 0 6px'>"
+                f"<img src='data:image/png;base64,{_b64}' "
+                f"style='width:150px;max-width:45%;height:auto'></div>",
+                unsafe_allow_html=True,
+            )
         st.markdown(
             "<p style='text-align:center' class='muted'>Bienvenido a tu Portal</p>",
             unsafe_allow_html=True,
