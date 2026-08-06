@@ -9,7 +9,6 @@ Para correrlo:  doble clic en  "INICIAR DEMO.cmd"
 """
 import os
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -20,61 +19,8 @@ st.set_page_config(
     page_title="Portal · Automatización (DEMO)",
     page_icon=LOGO if os.path.exists(LOGO) else "⚡",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="expanded",
 )
-
-# --------------------------------------------------------------------------- #
-# Bloquear zoom (pellizco en celular, doble toque y Ctrl+rueda en PC)
-# --------------------------------------------------------------------------- #
-def bloquear_zoom() -> None:
-    # El componente vive en un iframe, pero alcanzamos la pagina real con
-    # window.parent para fijar el viewport y frenar los gestos de zoom.
-    components.html(
-        """
-        <script>
-        (function () {
-          const doc = window.parent.document;
-
-          // 1) Viewport: impide el pellizco para hacer zoom en moviles.
-          let meta = doc.querySelector('meta[name="viewport"]');
-          if (!meta) {
-            meta = doc.createElement('meta');
-            meta.name = 'viewport';
-            doc.head.appendChild(meta);
-          }
-          meta.setAttribute(
-            'content',
-            'width=device-width, initial-scale=1.0, maximum-scale=1.0, ' +
-            'minimum-scale=1.0, user-scalable=no'
-          );
-
-          // 2) touch-action: evita el zoom por doble toque.
-          const st = doc.createElement('style');
-          st.textContent = 'html,body{touch-action:manipulation;}';
-          doc.head.appendChild(st);
-
-          // 3) Ctrl/Cmd + rueda y gestos de trackpad en escritorio.
-          const stop = (e) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); } };
-          doc.addEventListener('wheel', stop, { passive: false });
-          ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) =>
-            doc.addEventListener(ev, (e) => e.preventDefault(), { passive: false })
-          );
-
-          // 4) Ctrl/Cmd +, - y 0 desde el teclado.
-          doc.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) &&
-                ['+', '-', '=', '0'].includes(e.key)) {
-              e.preventDefault();
-            }
-          });
-        })();
-        </script>
-        """,
-        height=0,
-    )
-
-
-bloquear_zoom()
 
 # --------------------------------------------------------------------------- #
 # Estilo
